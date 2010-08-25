@@ -1,5 +1,23 @@
 <?php
 
+global $gBitSystem;
+
+$gBitSystem->registerPackageInfo( SWITCHBOARD_PKG_NAME, array(
+	'description' => "Switchboard is a general service package for enhancing how packages can route messages in the system.",
+	'license' => '<a href="http://www.gnu.org/licenses/licenses.html#LGPL">LGPL</a>',
+) );
+
+// Package requirements
+$gBitSystem->registerRequirements( LANGUAGES_PKG_NAME, array(
+	'liberty'   => array( 'min' => '2.1.4' ),
+	'users'     => array( 'min' => '2.1.0' ),
+	'kernel'    => array( 'min' => '2.0.0' ),
+	'themes'    => array( 'min' => '2.0.0' ),
+));
+
+global $gBitInstaller;
+if( is_object( $gBitInstaller ) ){
+
 $tables = array(
 	'switchboard_prefs' => "
 		package C(128) NOTNULL,
@@ -36,23 +54,18 @@ $tables = array(
 	",
 );
 
-global $gBitSystem;
+global $gBitInstaller;
 
 foreach( array_keys( $tables ) AS $tableName ) {
-	$gBitSystem->registerSchemaTable( SWITCHBOARD_PKG_NAME, $tableName, $tables[$tableName] );
+	$gBitInstaller->registerSchemaTable( SWITCHBOARD_PKG_NAME, $tableName, $tables[$tableName] );
 }
 
-$gBitSystem->registerPackageInfo( SWITCHBOARD_PKG_NAME, array(
-	'description' => "Switchboard is a general service package for enhancing how packages can route messages in the system.",
-	'license' => '<a href="http://www.gnu.org/licenses/licenses.html#LGPL">LGPL</a>',
-) );
-
-$gBitSystem->registerPackageVersion( SWITCHBOARD_PKG_NAME, '1.0.0' );
+$gBitInstaller->registerPackageVersion( SWITCHBOARD_PKG_NAME, '1.0.0' );
 
 $sequences = array (
 	'switchboard_queue_id_seq' => array( 'start' => 1 )
 );
-$gBitSystem->registerSchemaSequences( SWITCHBOARD_PKG_NAME, $sequences );
+$gBitInstaller->registerSchemaSequences( SWITCHBOARD_PKG_NAME, $sequences );
 
 $indices = array(
 	'switchboard_prefs_pkg_idx' => array( 'table' => 'switchboard_prefs', 'cols' => 'package', 'opts' => NULL ),
@@ -60,8 +73,10 @@ $indices = array(
 	'switchboard_prefs_user_idx' => array( 'table' => 'switchboard_prefs', 'cols' => 'user_id', 'opts' => NULL ),
 	'switchboard_prefs_content_idx' => array( 'table' => 'switchboard_prefs', 'cols' => 'content_id', 'opts' => NULL ),
 	);
-$gBitSystem->registerSchemaIndexes( SWITCHBOARD_PKG_NAME, $indices );
+$gBitInstaller->registerSchemaIndexes( SWITCHBOARD_PKG_NAME, $indices );
 
-$gBitSystem->registerPreferences( SWITCHBOARD_PKG_NAME, array(
+$gBitInstaller->registerPreferences( SWITCHBOARD_PKG_NAME, array(
 	array( SWITCHBOARD_PKG_NAME, 'switchboard_default_transport','email'),
 ) );
+
+}
