@@ -7,8 +7,15 @@ $gBitSystem->registerPackageInfo( SWITCHBOARD_PKG_NAME, array(
 	'license' => '<a href="http://www.gnu.org/licenses/licenses.html#LGPL">LGPL</a>',
 ) );
 
-
 // Install process
+// Package requirements
+$gBitSystem->registerRequirements( LANGUAGES_PKG_NAME, array(
+	'liberty'   => array( 'min' => '2.1.4' ),
+	'users'     => array( 'min' => '2.1.0' ),
+	'kernel'    => array( 'min' => '2.0.0' ),
+	'themes'    => array( 'min' => '2.0.0' ),
+));
+
 global $gBitInstaller;
 if( is_object( $gBitInstaller ) ){
 
