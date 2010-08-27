@@ -1,5 +1,17 @@
 <?php
 
+global $gBitSystem;
+
+$gBitSystem->registerPackageInfo( SWITCHBOARD_PKG_NAME, array(
+	'description' => "Switchboard is a general service package for enhancing how packages can route messages in the system.",
+	'license' => '<a href="http://www.gnu.org/licenses/licenses.html#LGPL">LGPL</a>',
+) );
+
+
+// Install process
+global $gBitInstaller;
+if( is_object( $gBitInstaller ) ){
+
 $tables = array(
 	'switchboard_prefs' => "
 		package C(128) NOTNULL,
@@ -36,16 +48,9 @@ $tables = array(
 	",
 );
 
-global $gBitInstaller;
-
 foreach( array_keys( $tables ) AS $tableName ) {
 	$gBitInstaller->registerSchemaTable( SWITCHBOARD_PKG_NAME, $tableName, $tables[$tableName] );
 }
-
-$gBitInstaller->registerPackageInfo( SWITCHBOARD_PKG_NAME, array(
-	'description' => "Switchboard is a general service package for enhancing how packages can route messages in the system.",
-	'license' => '<a href="http://www.gnu.org/licenses/licenses.html#LGPL">LGPL</a>',
-) );
 
 $gBitInstaller->registerPackageVersion( SWITCHBOARD_PKG_NAME, '1.0.0' );
 
@@ -65,3 +70,5 @@ $gBitInstaller->registerSchemaIndexes( SWITCHBOARD_PKG_NAME, $indices );
 $gBitInstaller->registerPreferences( SWITCHBOARD_PKG_NAME, array(
 	array( SWITCHBOARD_PKG_NAME, 'switchboard_default_transport','email'),
 ) );
+
+}
