@@ -9,6 +9,7 @@ $registerHash = array(
 	'package_name' => 'switchboard',
 	'package_path' => dirname( __FILE__ ).'/',
 	'homeable' => TRUE,
+	'required_package'=> TRUE,
 );
 $gBitSystem->registerPackage( $registerHash );
 
