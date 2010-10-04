@@ -1,0 +1,68 @@
+---
+switchboard: 
+  homeable: false
+  required: false
+  tables: 
+    switchboard_prefs: |
+      
+      package C(128) NOTNULL,
+      event_type C(128) NOTNULL,
+      user_id I4 NOTNULL,
+      content_id I4,
+      delivery_style C(64) NOTNULL
+      CONSTRAINT '
+      , CONSTRAINT `switchboard_prefs_content_ref` FOREIGN KEY (`content_id`) REFERENCES `liberty_content` (`content_id`)
+      , CONSTRAINT `switchboard_prfs_user_ref` FOREIGN KEY (`user_id`) REFERENCES `users_users` (`user_id`) '
+      
+    switchboard_queue: |
+      
+      message_id I4 PRIMARY,
+      package C(128) NOTNULL,
+      event_type C(128) NOTNULL,
+      content_id I4,
+      sending_user_id I4,
+      queue_date I8 NOTNULL,
+      complete_date I8,
+      message X NOTNULL
+      CONSTRAINT '
+      , CONSTRAINT `switchboard_queue_content_ref` FOREIGN KEY (`content_id`) REFERENCES `liberty_content` (`content_id`)
+      , CONSTRAINT `switchboard_queue_user_ref` FOREIGN KEY (`sending_user_id`) REFERENCES `users_users` (`user_id`) '
+      
+    switchboard_recipients: |
+      
+      message_id I4 PRIMARY,
+      user_id I4 PRIMARY,
+      delivery_style C(64) NOTNULL
+      CONSTRAINT '
+      , CONSTRAINT `switchboard_recipients_m_ref` FOREIGN KEY (`message_id`) REFERENCES `switchboard_queue` (`message_id`)
+      , CONSTRAINT `switchboard_recipients_usr_ref` FOREIGN KEY (`user_id`) REFERENCES `users_users` (`user_id`) '
+      
+  version: 1.0.0
+  sequences: 
+    switchboard_queue_id_seq: 
+      start: 1
+  indexes: 
+    switchboard_prefs_pkg_idx: 
+      table: switchboard_prefs
+      cols: package
+      opts: 
+    switchboard_prefs_type_idx: 
+      table: switchboard_prefs
+      cols: event_type
+      opts: 
+    switchboard_prefs_user_idx: 
+      table: switchboard_prefs
+      cols: user_id
+      opts: 
+    switchboard_prefs_content_idx: 
+      table: switchboard_prefs
+      cols: content_id
+      opts: 
+  preferences: 
+    switchboard_default_transport: email
+  description: >
+    Switchboard is a general service package
+    for enhancing how packages can route
+    messages in the system.
+  license: 
+    html: '<a href="http://www.gnu.org/licenses/licenses.html#LGPL">LGPL</a>'
