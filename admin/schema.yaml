@@ -1,7 +1,13 @@
 ---
 switchboard: 
+  version: 1.0.0
   homeable: false
-  required: false
+  required: true
+  description: Switchboard is a general service package for managing message routing in the system.
+  license: 
+    name: LGPL
+    description: Licensed under the GNU LESSER GENERAL PUBLIC LICENSE.
+    url: http://www.gnu.org/copyleft/lesser.html
   tables: 
     switchboard_prefs: |
       
@@ -37,7 +43,6 @@ switchboard:
       , CONSTRAINT `switchboard_recipients_m_ref` FOREIGN KEY (`message_id`) REFERENCES `switchboard_queue` (`message_id`)
       , CONSTRAINT `switchboard_recipients_usr_ref` FOREIGN KEY (`user_id`) REFERENCES `users_users` (`user_id`) '
       
-  version: 1.0.0
   sequences: 
     switchboard_queue_id_seq: 
       start: 1
@@ -60,9 +65,3 @@ switchboard:
       opts: 
   preferences: 
     switchboard_default_transport: email
-  description: >
-    Switchboard is a general service package
-    for enhancing how packages can route
-    messages in the system.
-  license: 
-    html: '<a href="http://www.gnu.org/licenses/licenses.html#LGPL">LGPL</a>'
