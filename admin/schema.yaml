@@ -65,3 +65,13 @@ switchboard:
       opts: 
   preferences: 
     switchboard_default_transport: email
+  plugins:
+    switchboard:
+      handler_file: SwitchboardSystem.php
+      required: true
+      api_handlers:
+        tpl:
+          content_icon_tpl: 'bitpackage:switchboard/service_content_icon_inc.tpl',
+        function:
+          users_expunge: switchboard_user_expunge
+          content_expunge: switchboard_content_expunge

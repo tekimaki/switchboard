@@ -21,7 +21,6 @@ if( $gBitSystem->isPackageActive( 'switchboard' ) ) {
 		'menu_template'      => 'bitpackage:switchboard/menu_switchboard.tpl',
 	);
 	$gBitSystem->registerAppMenu( $menuHash );
-	*/
 
 	$gLibertySystem->registerService( SWITCHBOARD_PKG_NAME, SWITCHBOARD_PKG_NAME,
 		array(
@@ -30,6 +29,7 @@ if( $gBitSystem->isPackageActive( 'switchboard' ) ) {
 			'content_icon_tpl'           => 'bitpackage:switchboard/service_content_icon_inc.tpl',
 		)
 	);
+	*/
 
 //	$gBitSystem->registerNotifyEvent( array( "switchboard_request" => tra("A switchboard request is made.") ) );
 //	$gBitSystem->registerNotifyEvent( array( "switchboard_reply" => tra("A switchboard reply is made.") ) );
