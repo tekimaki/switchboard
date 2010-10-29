@@ -23,7 +23,7 @@
 				{/jstabs}
 			{/if}
 
-			<div class="row submit">
+			<div class="buttonHolder row submit">
 				<input type="submit" name="saveSwitchboardPrefs" value="Save Preferences" />
 			</div>
 		{/form}
