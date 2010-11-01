@@ -470,4 +470,12 @@ class SwitchboardSystem extends BitBase {
 	}
 }
 
-?>
+	// make sure all tags from a deleted user are nuked
+	function switchboard_content_expunge( &$pObject ) {
+		if( is_a( $pObject, 'BitUser' ) && !empty( $pObject->mUserId ) ) {
+			$pObject->mDb->StartTrans();
+			$pObject->mDb->query( "DELETE FROM `".BIT_DB_PREFIX."switchboard_prefs` WHERE `user_id`=?", array( $pObject->mUserId ) );
+			$pObject->mDb->CompleteTrans();
+		}
+	}
+
