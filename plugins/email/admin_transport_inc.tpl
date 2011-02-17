@@ -29,10 +29,11 @@
 	{legend legend="Switchboard Mail Server Transport Test"}
 		<input type="hidden" name="page" value="{$page}" />
 		<div class="row">
-			{formlabel label="Recipient Email Address" for="email_test_address"}
+			{formlabel label="Recipient Email Address(es)" for="email_test_address"}
 			{forminput}
 				<input class="textInput" type="text" name="email_test_address" value=""/>
-				{formhelp note="Email address to send a test email to."}
+				{formhelp note="Email address(es) to send a test email to. Separate mutiple email addresses with a comma ','."}
+                :qa
 			{/forminput}
 		</div>
 		<div class="buttonHolder row submit">

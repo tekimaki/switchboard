@@ -85,8 +85,11 @@ if( !empty( $_POST['email_test_send'] ) && !empty( $_POST['email_test_address'] 
 	global $gSwitchboardSystem;
 	$msg = array();
 	// send message to recipient
-	$recipients = array( array( 'email' => $_REQUEST['email_test_address'] ), );
-	$msg['recipients'] = $recipients;
+	$recipients = explode( ',', $_REQUEST['email_test_address'] );
+	$msg['recipients'] = array();
+	foreach( $recipients as $email ){
+		$msg['recipients'][] = array( 'email' => trim($email) );
+	}
 	$msg['headers']['from_name'] = $gBitSystem->getConfig( 'bitmailer_from' );
 	$msg['headers']['from'] = $gBitSystem->getConfig( 'bitmailer_sender_email' ); 
 
