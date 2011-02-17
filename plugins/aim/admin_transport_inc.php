@@ -37,14 +37,11 @@ $formTransportAim = array(
 );
 $gBitSmarty->assign( 'formTransportAim',$formTransportAim );
 
-if( !empty( $_POST ) ) {
+if( !empty( $_POST['aim_apply'] ) ) {
 
 	foreach( array_keys( $formTransportAim ) as $key ) {
 		if( empty( $_REQUEST[$key] ) || $_REQUEST[$key] != $formTransportAim[$key]['default'] ) {
 			$gBitSystem->storeConfig( $key, isset( $_REQUEST[$key] ) ? $_REQUEST[$key] : NULL );
 		}
 	}
-	$gBitSystem->storeConfig( 'switchboard_default_transport', $_REQUEST['switchboard_default_transport'] );
 }
-
-?>

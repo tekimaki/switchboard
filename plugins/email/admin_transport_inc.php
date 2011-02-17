@@ -63,7 +63,10 @@ $formSwitchboardChecks = array(
 $gBitSmarty->assign( 'formSwitchboardFeatures',$formSwitchboardFeatures );
 $gBitSmarty->assign( 'formSwitchboardChecks',$formSwitchboardChecks );
 
-if( !empty( $_POST ) ) {
+/**
+ * store configurations
+ */
+if( !empty( $_POST['email_apply'] ) ) {
 
 	foreach( array_keys( $formSwitchboardFeatures ) as $key ) {
 		if( empty( $_REQUEST[$key] ) || $_REQUEST[$key] != $gBitSystem->getConfig( $key ) ) {
@@ -73,7 +76,21 @@ if( !empty( $_POST ) ) {
 	foreach( $formSwitchboardChecks as $item => $data ) {
 		simple_set_toggle( $item, SWITCHBOARD_PKG_NAME );
 	}
-	$gBitSystem->storeConfig( 'switchboard_default_transport', $_REQUEST['switchboard_default_transport'] );
 }
 
-?>
+/**
+ * send email test
+ */
+if( !empty( $_POST['email_test_send'] ) && !empty( $_POST['email_test_address'] ) ){
+	global $gSwitchboardSystem;
+	$msg = array();
+	// send message to recipient
+	$recipients = array( array( 'email' => $_REQUEST['email_test_address'] ), );
+	$msg['recipients'] = $recipients;
+	$msg['headers']['from_name'] = $gBitSystem->getConfig( 'bitmailer_from' );
+	$msg['headers']['from'] = $gBitSystem->getConfig( 'bitmailer_sender_email' ); 
+
+	$msg['subject'] = tra( "Email transport test from ".$gBitSystem->getConfig('site_title', $_SERVER['HTTP_HOST']) );
+	$msg['alt_message'] = tra( "Hello World" );
+	$gSwitchboardSystem->sendEmail( $msg );
+}

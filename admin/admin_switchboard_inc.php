@@ -16,8 +16,6 @@ foreach( array_keys( $gSwitchboardSystem->mTransports ) as $transport ) {
 }
 $gBitSmarty->assign( 'transportConfigs', $transportConfigs );
 
-if( !empty( $_POST ) ) {
+if( !empty( $_POST['switchboard_apply'] ) ) {
 	$gBitSystem->storeConfig( 'switchboard_default_transport', $_REQUEST['switchboard_default_transport'] );
 }
-
-?>

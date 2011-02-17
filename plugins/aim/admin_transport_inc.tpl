@@ -1,4 +1,6 @@
+	{form}
 	{legend legend="Aim Transport Settings"}
+		<input type="hidden" name="page" value="{$page}" />
 		{foreach from=$formTransportAim key=item item=output}
 		<div class="row">
 			{formlabel label=`$output.label` for=$item}
@@ -8,4 +10,8 @@
 			{/forminput}
 		</div>
 		{/foreach}
+		<div class="buttonHolder row submit">
+			<input class="button" type="submit" name="aim_apply" value="{tr}Change preferences{/tr}" />
+		</div>
 	{/legend}
+	{/form}

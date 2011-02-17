@@ -1,9 +1,9 @@
 {strip}
-{form}
-		<input type="hidden" name="page" value="{$page}" />
 {jstabs}
 	{jstab title="Global Settings"}
+	{form}
 	{legend legend="Global Settings"}
+		<input type="hidden" name="page" value="{$page}" />
 		<div class="row">
 			{formlabel label="Default Transport"}
 			{forminput}	
@@ -15,7 +15,11 @@
 				</select>
 			{/forminput}
 		</div>
+		<div class="buttonHolder row submit">
+			<input class="button" type="submit" name="switchboard_apply" value="{tr}Change preferences{/tr}" />
+		</div>
 	{/legend}
+	{/form}
 	{/jstab}
 {foreach from=$transportConfigs key=transport item=transportConfigTpl}
 	{jstab title=$transport|ucwords}
@@ -23,8 +27,4 @@
 	{/jstab}
 {/foreach}
 {/jstabs}
-		<div class="buttonHolder row submit">
-			<input type="submit" name="apply" value="{tr}Change preferences{/tr}" />
-		</div>
-{/form}
 {/strip}
