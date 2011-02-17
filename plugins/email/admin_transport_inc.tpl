@@ -33,7 +33,6 @@
 			{forminput}
 				<input class="textInput" type="text" name="email_test_address" value=""/>
 				{formhelp note="Email address(es) to send a test email to. Separate mutiple email addresses with a comma ','."}
-                :qa
 			{/forminput}
 		</div>
 		<div class="buttonHolder row submit">
