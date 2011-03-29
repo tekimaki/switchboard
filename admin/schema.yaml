@@ -1,6 +1,6 @@
 ---
 switchboard: 
-  version: 1.0.0
+  version: 1.0.1
   homeable: false
   required: true
   description: Switchboard is a general service package for managing message routing in the system.
@@ -29,7 +29,9 @@ switchboard:
       sending_user_id I4,
       queue_date I8 NOTNULL,
       complete_date I8,
-      message X NOTNULL
+	  subject X,
+      message X,
+      alt_message X
       CONSTRAINT '
       , CONSTRAINT `switchboard_queue_content_ref` FOREIGN KEY (`content_id`) REFERENCES `liberty_content` (`content_id`)
       , CONSTRAINT `switchboard_queue_user_ref` FOREIGN KEY (`sending_user_id`) REFERENCES `users_users` (`user_id`) '

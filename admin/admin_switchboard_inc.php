@@ -6,7 +6,7 @@ global $gSwitchboardSystem;
 $transportConfigs = array();
 
 $pluginsDir = SWITCHBOARD_PKG_PATH.'plugins/';
-foreach( array_keys( $gSwitchboardSystem->mTransports ) as $transport ) {
+foreach( array_keys( $gSwitchboardSystem->getTransports() ) as $transport ) {
 	if( file_exists( $pluginsDir.$transport.'/admin_transport_inc.php' ) ) {
 		include( $pluginsDir.$transport.'/admin_transport_inc.php' );
 	}

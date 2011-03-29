@@ -21,6 +21,7 @@ $pluginParams = array(
 	'send_function' => 'transport_email_send',
 	'receive_function' => 'transport_email_receive',
 	'expunge_function' => 'transport_email_expunge',
+	'get_settings_sql' => 'transport_email_get_settings_sql',
 	'use_queue' => FALSE,
 );
 
@@ -230,3 +231,7 @@ function transport_email_strip_addresses( $pString ){
                 '[-!$%&\'*+\\./0-9=?A-Z^_`a-z{|}~]+)', '', $pString ); 
 }
 
+function transport_email_get_settings_sql( &$pParamHash ){
+	$pParamHash['select_sql'] .= ", uu.`email`, uu.`real_name`, uu.`login`";
+	$pParamHash['join_sql'] .= " LEFT JOIN users_users uu ON uu.`user_id` = d.`user_id`";
+}

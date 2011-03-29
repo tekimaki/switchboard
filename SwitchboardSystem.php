@@ -31,6 +31,7 @@
  */
 global $gSwitchboardSystem;
 require_once( KERNEL_PKG_PATH . 'BitBase.php' );
+require_once( LIBERTY_PKG_PATH . 'LibertyValidator.php' );
 
 /**
  * SwitchboardSystem 
@@ -42,12 +43,17 @@ class SwitchboardSystem extends BitBase {
 	/**
 	 * Active transport plugins
 	 */
-	var $mTransports;
+	private $mTransports;
 
 	/**
 	 * The packages registered to send events
 	 */
-	var $mSenders;
+	private $mSenders;
+
+	/**
+	 * Message Verification Schema
+	 */
+	private $mVerification;
 
 
 	/**
@@ -55,7 +61,7 @@ class SwitchboardSystem extends BitBase {
 	 * Use the $gSwitchboardSystem instance instead which is created
 	 * for you if you include this file.
 	 */
-	function SwitchboardSystem() {
+	function __construct() {
 		// Not much to do here
 		$this->mTransports = array();
 		$this->mSenders = array();
@@ -70,7 +76,7 @@ class SwitchboardSystem extends BitBase {
 	 *
 	 * @param boolean $pParamHash['include_owner'] - optional flag to load sender preferences for owners of a given content when a content_id is given for an event, see loadEffectivePreferences 
 	 */
-    function registerSender( $pPackage, $pType, $pParamHash = array() ) {
+    public function registerSender( $pPackage, $pType, $pParamHash = array() ) {
 		$this->mSenders[$pPackage]['types'][$pType] = $pParamHash;
 	}
 
@@ -80,7 +86,7 @@ class SwitchboardSystem extends BitBase {
 	 * Populates the list of available transport types
 	 * Example access looks like $this->mTransports['email']['send_function']
 	 **/
-	function registerTransport( $pGuid, $pParamHash ){
+	public function registerTransport( $pGuid, $pParamHash ){
 		if ( empty($this->mTransports[$pGuid]) ) {
 			$this->mTransports[$pGuid] = array_merge( $pParamHash );
 		}
@@ -89,10 +95,20 @@ class SwitchboardSystem extends BitBase {
 		}
 	}
 
+	public function getTransports()
+	{
+		return $this->mTransports;
+	}
+
+	public function getSenders()
+	{
+		return $this->mSenders;
+	}
+
 	/**
 	 * Load active transport plugins
 	 **/
-	function loadPlugins(){
+	public function loadPlugins(){
 		global $gBitSystem;
 		$pluginLoc = $gBitSystem->getConfig( "switchboard_plugin_path", SWITCHBOARD_PKG_PATH.'plugins' );
 		if( $plugins = scandir( $pluginLoc ) ) {
@@ -105,7 +121,7 @@ class SwitchboardSystem extends BitBase {
 		}
 	}
 
-	function getDefaultTransport() {
+	public function getDefaultTransport() {
 		global $gBitSystem;
 		return $gBitSystem->getConfig( 'switchboard_default_transport' );
 	}
@@ -120,7 +136,7 @@ class SwitchboardSystem extends BitBase {
 	 * $pDataHash - The message that is being sent.
 	 *				Currently supported are: message and subject
 	 */
-	function sendEvent($pPackage, $pEventType, $pContentId, $pDataHash, $pRecipients = NULL) {
+	public function sendEvent($pPackage, $pEventType, $pContentId, $pDataHash, $pRecipients = NULL) {
 		global $gBitSystem, $gBitUser;
 		$ret = FALSE;
 		// Make sure event is registered so we can do prefs for them. This is for devs really
@@ -136,7 +152,9 @@ class SwitchboardSystem extends BitBase {
   			foreach( $usersPrefs as $transportType => $users ) {
 				$msgHash['users'] = $users;
 				$msgHash['transport_type'] = $transportType;
-				$msgHash['use_queue'] = !empty( $this->mTransports[$transportType]['use_queue'] )?TRUE:FALSE;
+				if( empty( $msgHash['use_queue'] ) ){
+					$msgHash['use_queue'] = !empty( $this->mTransports[$transportType]['use_queue'] )?TRUE:FALSE;
+				}
 				// send the message using the prefered delivery style
 				$this->sendMsg( $msgHash );
 			}
@@ -145,6 +163,12 @@ class SwitchboardSystem extends BitBase {
 			bit_log_error( "Package: ".$pPackage." attempted to send message of type: ".$pEventType." but didn't register that it wanted to send this type." );
 		}
 		return $ret;
+	}
+
+	// convenience function
+	public function sendEmail( &$pParamHash ){
+		$pParamHash['transport_type'] = 'email';
+		$this->sendMsg( $pParamHash );
 	}
 
 	/**
@@ -162,7 +186,7 @@ class SwitchboardSystem extends BitBase {
 	 * @param array $pParamHash['event_type'] optional, required only for message queue
 	 * @param array $pParamHash['package'] optional, required only for message queue
 	 **/
-	function sendMsg( &$pParamHash ){
+	private function sendMsg( &$pParamHash ){
 		global $gBitSystem;
 
 		if( !empty( $pParamHash['transport_type'] ) ){
@@ -219,40 +243,94 @@ class SwitchboardSystem extends BitBase {
 		}
 	}	
 
-	// convenience function
-	function sendEmail( &$pParamHash ){
-		$pParamHash['transport_type'] = 'email';
-		$this->sendMsg( $pParamHash );
-	}
-
 	/**
 	 * Stores a message in the database and returns a message id.
 	 */
-	function queueMessage($event) {
+	private function queueMessage($event) {
 		global $gBitSystem, $gBitUser;
+		$ret = NULL;
 
-		$messageStore['package'] = $event['package'];
-		$messageStore['event_type'] = $event['event_type'];
-		$messageStore['content_id'] = $event['content_id'];
-		$messageStore['queue_date'] = $gBitSystem->getUTCDate();
-		$messageStore['message_id'] = $this->mDb->GenID( 'switchboard_queue_id_seq' );
-		$messageStore['message'] = $event['message'];
-		$messageStore['sending_user_id'] = $gBitUser->mUserId;
+		if( $this->verifyMessage( $event ) )
+		{
+			$event['message_store']['message_id'] = $this->mDb->GenID( 'switchboard_queue_id_seq' );
+			$this->mDb->associateInsert(BIT_DB_PREFIX."switchboard_queue", $event['message_store']);
+			$ret = $event['message_store']['message_id'];
+		}
 
-		$this->mDb->associateInsert(BIT_DB_PREFIX."switchboard_queue",
-									$messageStore);
+		return $ret;
+	}
 
-		return $messageStore['message_id'];
+	private function verifyMessage( &$event ){
+		global $gBitUser, $gBitSystem;
+
+		$this->validateMessageFields($event);
+
+		// set the user id
+		$event['message_store']['sending_user_id'] = $gBitUser->mUserId;
+
+		// set the queue date
+		$event['message_store']['queue_date'] = $gBitSystem->getUTCTime();
+
+		return( count( $this->mErrors )== 0 );
+	}
+
+	/**
+	 * validateMessageFields validates the fields
+	 */
+	private function validateMessageFields( &$pParamHash ) {
+		$errors = array();
+		$this->prepMessageVerify();
+		if (!empty($pParamHash)) {
+			LibertyValidator::validate(
+				$this->mVerification['message'],
+				$pParamHash,
+				$errors, 
+				$pParamHash['message_store']
+				);
+		}
+		if( !empty( $errors ) ){
+			$this->mErrors['message'] = $errors;
+		}
+	}
+
+	private function prepMessageVerify(){
+		if( empty( $this->mVerification['message'] ) )
+		{
+	 		/* Validation for package */
+			$this->mVerification['message']['string']['package'] = array(
+				'name' => 'package',
+				'max' => '128',
+				'required' => TRUE,
+			);
+	 		/* Validation for event_type */
+			$this->mVerification['message']['string']['event_type'] = array(
+				'name' => 'event_type',
+				'max' => '128',
+				'required' => TRUE,
+			);
+	 		/* Validation for content_id */
+			$this->mVerification['message']['int']['content_id'] = array(
+				'name' => 'content_id',
+			);
+	 		/* Validation for content_id */
+			$this->mVerification['message']['string']['message'] = array(
+				'name' => 'message',
+			);
+	 		/* Validation for content_id */
+			$this->mVerification['message']['string']['alt_message'] = array(
+				'name' => 'alt_message',
+			);
+		}
 	}
 
 	/*
 	 * Stores the delivery in the database
 	 */
-	function queueDelivery($pMessageId, $pUsers, $pDelivery) {
+	private function queueDelivery($pMessageId, $pUsers, $pDelivery) {
 		$deliveryStore['message_id'] = $pMessageId;
 		$deliveryStore['delivery_style'] = $pDelivery;
 		$table = BIT_DB_PREFIX."switchboard_recipients";
-		foreach($pUsers as $user_id) {
+		foreach( $pUsers as $user_id => $user ) {
 			$deliveryStore['user_id'] = $user_id;
 			$this->mDb->associateInsert($table, $deliveryStore);
 		}
@@ -267,25 +345,53 @@ class SwitchboardSystem extends BitBase {
 	}
 
 	/**
-	 * Returns the user_ids of pending deliveries as an associated array
-	 * These come out associated first by message id and then delivery style
+	 * Returns the user transport addresses of pending deliveries as an associated array
+	 * These come out associated first by message id then by delivery style then by user data
 	 */
 	function listPendingDeliveries() {
-		$query = "SELECT q.*  FROM `".BIT_DB_PREFIX."switchboard_recipients` WHERE `complete_date` IS NULL";
-		$result = $this->mDb->query($query, $pUserId);
+		$sql = $bindVars = array();
+		$sql['select_sql'] = $sql['join_sql'] = $sql['where_sql'] = "";
+		$this->getUserTransportSettingsSql( $sql );
+		$LC = new LibertyContent();
+		$LC->getServicesSql( 'content_list_sql_function', $sql['select_sql'], $sql['join_sql'], $sql['where_sql'], $bindVars, NULL );
+		$query = "SELECT d.* 
+					".$sql['select_sql']." 
+					FROM `".BIT_DB_PREFIX."switchboard_recipients` d 
+					LEFT JOIN `".BIT_DB_PREFIX."switchboard_queue` q ON (d.`message_id` = q.`message_id`)
+					LEFT JOIN `".BIT_DB_PREFIX."liberty_content` lc ON (lc.`content_id` = q.`content_id`)
+				   ".$sql['join_sql']."	
+					WHERE q.`complete_date` IS NULL".$sql['where_sql'];
+		$result = $this->mDb->query($query, $bindVars );
 		$ret = array();
 		while($res = $result->fetchRow()) {
-			$ret[$res['message_id']][$res['delivery_style']][] = $res['user_id'];
+			$ret[$res['message_id']][$res['delivery_style']][$res['user_id']] = $res;
 		}
 
 		return $ret;
 	}
 
 	/**
+	 * returns sql for joining user settings for registered transports
+	 */
+	private function getUserTransportSettingsSql( &$pParamHash )
+	{
+		foreach( $this->mTransports as $transport )
+		{
+			if( !empty( $transport['get_settings_sql'] ) ){
+				$func = $transport['get_settings_sql'];
+				if( function_exists( $func ) )
+					$func( $pParamHash );
+			}
+		}
+	}
+
+	/**
 	 * Returns an array of messages with the given message IDs.
 	 */
 	function listMessages($pMessageIds) {
-		$query = "SELECT q.`message_id` AS hash_key, q.* FROM `".BIT_DB_PREFIX."switchboard_queue` WHERE q.`message_id` IN (". implode( ',',array_fill( 0,count( $pMessageIds ),'?' ) ). ") ";
+		$query = "SELECT q.`message_id` AS hash_key, q.* 
+					FROM `".BIT_DB_PREFIX."switchboard_queue` q 
+					WHERE q.`message_id` IN (". implode( ',',array_fill( 0,count( $pMessageIds ),'?' ) ). ") ";
 		$messages = $this->mDb->getAssoc($query, $pMessageIds);
 
 		return $messages;
@@ -439,7 +545,7 @@ class SwitchboardSystem extends BitBase {
 	 * Checks if a package is registered as a sender.
 	 * $pSender - The package to check.
 	 */
-	function senderIsRegistered($pSender, $pType = NULL) {
+	private function senderIsRegistered($pSender, $pType = NULL) {
 		if (!empty($pType)) {
 			return !empty($this->mSenders[$pSender]) && in_array($pType, array_keys($this->mSenders[$pSender]['types']));
 		}
@@ -448,25 +554,50 @@ class SwitchboardSystem extends BitBase {
 		}
 	}
 
-	function tendQueue() {
+	/**
+	 * process the message queue
+	 */
+	public function tendQueue() {
+		// New process, reset the errors hash
+		$this->resetErrors();
 		// Get the list of pending deliveries
-		$msg_to_deliver = $this->listPendingDeliveries();
-		// If we have any
-		if (count($msg_to_deliver)) {
+		if( $msg_to_deliver = $this->listPendingDeliveries() ){
 			// Fetch the data about the messages
 			$messages = $this->listMessages(array_keys($msg_to_deliver));
-			// And figure out how to deliver them
 			foreach($msg_to_deliver as $message_id => $deliveries) {
-				foreach($delivereis as $delivery_style => $users) {
+				$errors = array();
+				// Get the message data in play
+				$msg = $messages[$message_id];
+				// Send the message for each delivery style
+				foreach($deliveries as $delivery_style => $users) {
 					$func = $this->mTransports[$delivery_style]['send_function'];
 					if( function_exists($func) ) {
-						$func($event, $users);
+						$msg['recipients'] = $users;
+						$func($msg);
 					} else {
-						bit_log_error(  tra( "Package registered a non-existant function listener:" )." ".$this->mTransports[$delivery_style]['send_function']." => $func" );
+						$errors[$delivery_style]['send_function'] = tra( "Package registered a non-existant function listener:" )." ".$this->mTransports[$delivery_style]['send_function']." => $func";
+						bit_log_error( $errors[$message_id] ); 
 					}
+				}
+				// Purge the queue of processed msg
+				if( empty( $errors ) )
+				{
+					$this->purgeQueue( $message_id );
+				}else{
+					$this->mErrors['tend_queue'][$message_id] = $errors;
 				}
 			}
 		}
+		return ( count( $this->getErrors() ) == 0 );
+	}
+
+	private function purgeQueue( $pMessageId )
+	{
+		// Foreign Keys make order important 
+		$purge_recipients_query = "DELETE FROM switchboard_recipients WHERE message_id = ?";
+		$this->mDb->query( $purge_recipients_query, array( $pMessageId ) );
+		$purge_queue = "DELETE FROM switchboard_queue WHERE message_id = ?";
+		$this->mDb->query( $purge_queue, array( $pMessageId ) );
 	}
 }
 

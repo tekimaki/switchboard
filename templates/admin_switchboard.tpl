@@ -9,7 +9,7 @@
 			{forminput}	
 				<select name="switchboard_default_transport">
 					<option value=""></option>
-					{foreach from=$gSwitchboardSystem->mTransports key=style item=options}
+					{foreach from=$gSwitchboardSystem->getTransports() key=style item=options}
 					<option value="{$style}" {if $gSwitchboardSystem->getDefaultTransport() == $style}selected="selected"{/if}/>{$style|capitalize:true}</option>
 					{/foreach}
 				</select>

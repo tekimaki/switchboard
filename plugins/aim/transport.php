@@ -21,6 +21,7 @@ $pluginParams = array(
 	'send_function' => 'transport_aim_send',
 	'receive_function' => 'transport_aim_receive',
 	'expunge_function' => 'transport_aim_expunge',
+	'get_settings_sql' => 'transport_aim_get_settings_sql',
 	'use_queue' => FALSE,
 );
 
@@ -62,5 +63,9 @@ function transport_aim_send( &$pParamHash ) {
 }
 
 function transport_aim_expunge( $pMsg ){
+}
+
+// @TODO when aim plugin defines a means for users to set their aim nick
+function transport_aim_get_settings_sql( &$pParamHash ){
 }
 

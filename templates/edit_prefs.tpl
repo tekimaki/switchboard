@@ -1,8 +1,8 @@
 {strip}
-{if empty($gSwitchboardSystem->mTransports) }
+{if empty($gSwitchboardSystem->getTransports()) }
 	<div class="warning">{tr}No packages registered as listeners.{/tr}</div>
 {else}
-	{if empty($gSwitchboardSystem->mSenders)}
+	{if empty($gSwitchboardSystem->getSenders())}
 		<div class="warning">{tr}No packages registered as senders.{/tr}</div>
 	{else}
 		{form}
