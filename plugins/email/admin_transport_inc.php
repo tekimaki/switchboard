@@ -59,6 +59,10 @@ $formSwitchboardChecks = array(
 		'label' => 'SSL',
 		'note' => 'Connect to SMTP server using SSL.',
 	),
+	"bitmailer_send_disable" => array(
+		'label' => 'Disable Send',
+		'note' => 'Disable any email sending routing through Switchboard',
+	),
 );
 $gBitSmarty->assign( 'formSwitchboardFeatures',$formSwitchboardFeatures );
 $gBitSmarty->assign( 'formSwitchboardChecks',$formSwitchboardChecks );

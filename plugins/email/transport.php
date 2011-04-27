@@ -72,6 +72,12 @@ function transport_email_receive( $pMsg ){
  * @param array $pParamHash['recipients'] An Array of recipients, where each recipient is an array with key value pair of 'email' => emailaddress
  **/
 function transport_email_send( &$pParamHash ){
+	global $gBitSystem;
+	// if email send is disabled dont send
+	if( $gBitSystem->isFeatureActive( 'bitmailer_send_disable' ) ){
+		return NULL;
+	}
+
 	// convenience
 	$headers = !empty( $pParamHash['headers'] )?$pParamHash['headers']:array();
 	$subject = $pParamHash['subject']; 
