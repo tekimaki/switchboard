@@ -83,6 +83,8 @@ function transport_email_send( &$pParamHash ){
 	$subject = $pParamHash['subject']; 
 	$body = !empty( $pParamHash['message'] )? $pParamHash['message'] : NULL;
 	$recipients = $pParamHash['recipients']; 
+	$cc = !empty( $pParamHash['cc'] )? $pParamHash['cc'] : NULL;
+	$bcc = !empty( $pParamHash['bcc'] )? $pParamHash['bcc'] : NULL;
 
 	// assemble the email
 	$message = $headers;
@@ -111,6 +113,26 @@ function transport_email_send( &$pParamHash ){
 				$mailer->AddAddress( $to['email'], empty($to['real_name']) ? $to['login'] : $to['real_name'] );
 			} else {
 				$mailer->AddAddress( $to['email'] );
+			}
+			// add cc
+			if( !empty( $cc ) ){
+				foreach( $cc as $tocc ){
+					if (isset($tocc['real_name']) || isset($tocc['login'])) {
+						$mailer->AddCC( $tocc['email'], empty($tocc['real_name']) ? $tocc['login'] : $tocc['real_name'] );
+					} else {
+						$mailer->AddCC( $tocc['email'] );
+					}
+				}
+			}
+			// add bcc
+			if( !empty( $bcc ) ){
+				foreach( $bcc as $tobcc ){
+					if (isset($tobcc['real_name']) || isset($tobcc['login'])) {
+						$mailer->AddBCC( $tobcc['email'], empty($tobcc['real_name']) ? $tobcc['login'] : $tobcc['real_name'] );
+					} else {
+						$mailer->AddBCC( $tobcc['email'] );
+					}
+				}
 			}
 			// send
 			if( !$mailer->Send() ) {

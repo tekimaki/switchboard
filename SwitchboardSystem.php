@@ -168,7 +168,7 @@ class SwitchboardSystem extends BitBase {
 	// convenience function
 	public function sendEmail( &$pParamHash ){
 		$pParamHash['transport_type'] = 'email';
-		$this->sendMsg( $pParamHash );
+		return $this->sendMsg( $pParamHash );
 	}
 
 	/**
@@ -220,7 +220,7 @@ class SwitchboardSystem extends BitBase {
 				else {
 					$func = $this->mTransports[$transport_type]['send_function'];
 					if( function_exists($func) ) {
-						$func($pParamHash);
+						return $func($pParamHash);
 					} else {
 						bit_log_error("Package: ".$this->mTransports[$transport_type]['package']." registered a non-existant send handler: ".$func);
 					}
